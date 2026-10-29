@@ -31,5 +31,17 @@ class LaravelBasicController extends Controller
             ->withInput(); // Keeps form inputs filled out if needed
         }
 
-    public function 
+    public function bioCharacterCounter() 
+    {
+        return view('basic.bio_character_counter');
+    }
+
+    public function bioCharacterCounterPost(Request $request) 
+    {
+        $validator = Validator::validate($request->only('profile-bio'), [
+            'profile-bio' => 'required|string|max:160'
+        ]);
+
+        
+    }
 }
