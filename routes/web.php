@@ -11,7 +11,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::view('/jobs', 'jobs');
 
-Route::get('/counter-reset', [LaravelBasicController::class, 'counterReset'])->name('counterReset');
+Route::get('/counter-reset', [LaravelBasicController::class, 'counterReset'])->name('counter-reset');
+
+Route::get('/name-preview', [LaravelBasicController::class, 'namePreview'])->name('name-preview');
+Route::post('/name-preview', [LaravelBasicController::class, 'namePreviewstore'])->name('name-preview-store');
+
+Route::get('/bio-character-counter', [LaravelBasicController::class, 'namePreviewstore'])->name('bio-character-counter');
+
 
 require __DIR__.'/settings.php';
 
