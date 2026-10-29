@@ -29,19 +29,19 @@ class LaravelBasicController extends Controller
             ->with('first_name', $validatedData['first-name'])
             ->with('last_name', $validatedData['last-name'])
             ->withInput(); // Keeps form inputs filled out if needed
-        }
+    }
 
-    public function bioCharacterCounter() 
+    public function bioCharacterCounter()
     {
         return view('basic.bio_character_counter');
     }
 
-    public function bioCharacterCounterPost(Request $request) 
+    public function bioCharacterCounterPost(Request $request)
     {
         $validator = Validator::validate($request->only('profile-bio'), [
             'profile-bio' => 'required|string|max:160'
         ]);
-
-        
     }
+
+    
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LaravelBasicController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,9 @@ Route::post('/name-preview', [LaravelBasicController::class, 'namePreviewstore']
 
 Route::get('/bio-character-counter', [LaravelBasicController::class, 'bioCharacterCounter'])->name('bio-character-counter');
 Route::post('/bio-character-counter', [LaravelBasicController::class, 'bioCharacterCounterPost'])->name('bio-character-counter-post');
+
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 require __DIR__.'/settings.php';
 
