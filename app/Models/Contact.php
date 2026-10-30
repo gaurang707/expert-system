@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable('name', 'email', 'subject', 'message')]
 class Contact extends Model
 {
-    //
+    
 }

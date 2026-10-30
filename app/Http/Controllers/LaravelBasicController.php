@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\City;
+use App\Models\Country;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -43,5 +46,49 @@ class LaravelBasicController extends Controller
         ]);
     }
 
-    
+    public function countryCity(Request $request)
+    {
+        $searchTerm = $request->query('country');
+        $city_searchTerm = $request->query('city');
+        $countries = Country::select('id', 'name')->get();
+
+        if (!empty($searchTerm)) {
+            $cities = City::select('id', 'name')
+                ->where('country_id', $searchTerm)
+                ->get();
+        }
+        return view('basic.country_city', compact('countries', 'searchTerm', 'cities', 'city_searchTerm'));
+    }
+
+    public function countryCityAjax(Request $request)
+    {
+        return view('basic.country_city-ajax');
+    }
+
+    public function getCountries(): JsonResponse
+    {
+        // Assuming your Country model has 'code' (us, uk) and 'name' columns
+        $countries = Country::select('id', 'name')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return response()->json($countries);
+    }
+
+    // Fetched when country selection changes
+    public function getCities(Request $request): JsonResponse
+    {
+        $country = $request->input('country');
+
+        if (!$country) {
+            return response()->json([], 400);
+        }
+
+        $cities = City::where('country_id', $country)
+            ->select('id', 'name')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return response()->json($cities);
+    }
 }
