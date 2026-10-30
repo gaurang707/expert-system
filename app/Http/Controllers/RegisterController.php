@@ -17,7 +17,6 @@ class RegisterController extends Controller
 
     public function store(RegisterRequest $request)
     {
-
         try {
             $data = $request->validated();
             $data['password'] = Hash::make($request->password);
@@ -30,5 +29,10 @@ class RegisterController extends Controller
                 ->withInput()
                 ->with('error', 'Something went wrong. Please try again later.');
         }
+    }
+
+    public function passowrdPlay() 
+    {
+        return view('basic.password_play');
     }
 }

@@ -27,6 +27,8 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 Route::get('register', [RegisterController::class, 'index'])->name('register');
 Route::post('register', [RegisterController::class, 'store'])->name('register.store');
 
+Route::get('/passowrd/play', [RegisterController::class, 'passowrdPlay'])->name('password.play');
+
 require __DIR__.'/settings.php';
 
 
