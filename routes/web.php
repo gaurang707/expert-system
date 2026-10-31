@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LaravelBasicController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/countries', [LaravelBasicController::class, 'getCountries']);
     Route::post('/cities', [LaravelBasicController::class, 'getCities']);
+
+
+    Route::get('/product-catalog', [ProductController::class, 'index'])->name('product-catalog');
 });
 
 

@@ -75,4 +75,5 @@
 
     </div>
 
-    </x-layouts>
+  
+</x-layouts::app>

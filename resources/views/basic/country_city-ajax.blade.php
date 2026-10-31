@@ -141,4 +141,4 @@
         });
     </script>
 
-    </x-layouts>
+</x-layouts::app>
