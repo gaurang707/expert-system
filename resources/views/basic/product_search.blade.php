@@ -8,6 +8,7 @@
             <!-- Search Form -->
             <form action="{{ route('product-catalog') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-2.5">
                 <input
+                    id="product_catalog_search"
                     type="text"
                     name="search"
                     value="{{ $searchTerm ?? '' }}"
@@ -20,7 +21,9 @@
                         Search
                     </button>
                     <button
-                        type="reset"
+                        type="submit"
+                        name="resetbutton"
+                        value="resetbutton"
                         class="flex-1 sm:flex-initial px-6 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-300 rounded-full transition duration-150 cursor-pointer">
                         Reset
                     </button>
@@ -49,7 +52,7 @@
                     <div>
                         <p>Not found any product</p>
                     </div>
-                    <span class="text-base font-semibold text-gray-900">₹45,999</span>
+
                 </div>
                 @endforelse
 
@@ -68,7 +71,7 @@
             <!-- Footer Note -->
             <div class="pt-2">
                 <span class="text-xs text-gray-500 font-mono">
-                    Example URL: /product-catalog?search=
+                    Example URL: /product-catalog?search={{$searchTerm}}
                 </span>
             </div>
         </div>

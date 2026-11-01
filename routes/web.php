@@ -4,6 +4,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LaravelBasicController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -37,7 +38,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::get('/product-catalog', [ProductController::class, 'index'])->name('product-catalog');
-});
+    
+    Route::get('/task-list', [TaskController::class, 'index_quick'])->name('task-list');   
+    Route::get('/task-quick-add', [TaskController::class, 'todoQuickAdd'])->name('task-quick-add');    
+    Route::post('/task-quick-add', [TaskController::class, 'todoQuickStore'])->name('task.quick-add-store');
 
+    Route::resource('tasks', TaskController::class);    
+});
 
 require __DIR__ . '/settings.php';

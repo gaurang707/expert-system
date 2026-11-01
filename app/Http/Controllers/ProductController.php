@@ -11,7 +11,11 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $searchTerm = $request->input('search');
+        if ($request->input('resetbutton') && $request->input('resetbutton') == "resetbutton") {
+            $searchTerm = '';
+        } else {
+            $searchTerm = $request->input('search');
+        }
 
         if ($searchTerm) {
             $searchTerm = trim($searchTerm);
