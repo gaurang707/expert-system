@@ -65,10 +65,14 @@
           @enderror
         </div>
         <div>
+          @php
+          $status = old('status', '');
+          @endphp
           <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+          <select name="status" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition">
+            <option value="">---Select status---</option>
+            <option value="active" @if($status=='active' ) selected @endif>Active</option>
+            <option value="inactive" @if($status=='inactive' ) selected @endif>Inactive</option>
           </select>
         </div>
       </div>

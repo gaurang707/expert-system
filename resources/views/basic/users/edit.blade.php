@@ -56,16 +56,16 @@
                     </div>
                 </div>
 
-                    @php 
-                        $role_id = old('role_id', $user->role->id);
-                    @endphp
+                @php
+                $role_id = old('role_id', $user->role->id);
+                @endphp
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                         <select name="role_id" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition">
                             <option value="">---Select Role---</option>
                             @foreach ($roles as $role)
-                            <option value="{{ $role->id }}" @if($role_id == $role->id) selected @endif>{{ $role->display_name }}</option>
+                            <option value="{{ $role->id }}" @if($role_id==$role->id) selected @endif>{{ $role->display_name }}</option>
                             @endforeach
                         </select>
                         @error('role_id')
@@ -73,10 +73,14 @@
                         @enderror
                     </div>
                     <div>
+                        @php
+                            $status = old('status', 'active');
+                        @endphp
                         <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition">
-                            <option value="active" selected>Active</option>
-                            <option value="inactive">Inactive</option>
+                        <select name="status" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition">
+                            <option value="">---Select status---</option>
+                            <option value="active" @if($status=='active') selected @endif>Active</option>
+                            <option value="inactive" @if($status=='inactive') selected @endif>Inactive</option>
                         </select>
                     </div>
                 </div>

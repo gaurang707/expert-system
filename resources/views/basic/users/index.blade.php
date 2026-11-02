@@ -41,77 +41,57 @@
     </div>
     @endif
 
+
     <div>
         <form method="GET" action="{{ route('users.index') }}"
-            class="flex flex-wrap items-center gap-3 mb-6">
-            <div>
-                <!-- Search -->
-                <input
-                    type="search"
-                    name="search"
-                    value="{{ old('search', $search) }}"
-                    placeholder="Search name or email..."
-                    class="border rounded-lg px-4 py-2
-               @error('search') border-red-500 @enderror">
+            class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
 
+            <input type="search"
+                name="search"
+                value="{{ old('search', $filters['search'] ?? '') }}"
+                placeholder="Search name or email"
+                class="border rounded-lg px-3 py-2">
 
-                @error('search')
-                <p class="text-red-600 text-sm mt-1">
-                    {{ $message }}
-                </p>
-                @enderror
-            </div>
-            <div>
-                <!-- Role -->
-                <select name="role_id"
-                    class="border border-gray-300 rounded-lg px-4 py-2 @error('role_id') border-red-500 @enderror">
+            <select name="role_id" class="border rounded-lg px-3 py-2">
+                <option value="">All Roles</option>
+                @foreach ($roles as $role)
+                <option value="{{ $role->id }}"
+                    @selected(($filters['role_id'] ?? '' )==$role->id)>
+                    {{ $role->display_name }}
+                </option>
+                @endforeach
+            </select>
 
-                    <option value="{{ old('role_id', $roleId) }}">All Roles</option>
+            <select name="status" class="border rounded-lg px-3 py-2">
+                <option value="">All Statuses</option>
+                <option value="active"
+                    @selected(($filters['status'] ?? '' )==='active' )>
+                    Active
+                </option>
+                <option value="inactive"
+                    @selected(($filters['status'] ?? '' )==='inactive' )>
+                    Inactive
+                </option>
+            </select>
 
-                    @foreach ($roles as $role)
-                    <option value="{{ $role->id }}"
-                        @selected((string) $roleId===(string) $role->id)>
-                        {{ $role->display_name }}
-                    </option>
-                    @endforeach
-                </select>
+            <input type="date"
+                name="date_from"
+                value="{{ $filters['date_from'] ?? '' }}"
+                class="border rounded-lg px-3 py-2">
 
-                @error('role_id')
-                <p class="text-red-600 text-sm mt-1">
-                    {{ $message }}
-                </p>
-                @enderror
-            </div>
-            <div>
-                <!-- Per Page -->
-                <select name="per_page"
-                    class="border border-gray-300 rounded-lg px-4 py-2 @error('role_id') border-red-500 @enderror">
-
-                    @foreach ([10, 25, 50, 100] as $limit)
-                    <option value="{{ $limit }}"
-                        @selected($perPage===$limit)>
-                        {{ $limit }} per page
-                    </option>
-                    @endforeach
-                </select>
-                @error('per_page')
-
-                <p class="text-red-600 text-sm mt-1">
-                    {{ $message }}
-                </p>
-                @enderror
-
-            </div>
-
+            <input type="date"
+                name="date_to"
+                value="{{ $filters['date_to'] ?? '' }}"
+                class="border rounded-lg px-3 py-2">
 
             <button type="submit"
-                class="bg-blue-600 text-white px-5 py-2 rounded-lg">
-                Search
+                class="bg-blue-600 text-white rounded-lg px-4 py-2">
+                Apply Filters
             </button>
 
             <a href="{{ route('users.index') }}"
-                class="border border-gray-300 px-5 py-2 rounded-lg">
-                Reset
+                class="text-blue-600 underline">
+                Clear Filters
             </a>
         </form>
     </div>
@@ -161,10 +141,19 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
+
+                                @if($user->status == 'active')
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                     Active
                                 </span>
+                                @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                    Inactive
+                                </span>
+                                @endif
+
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $user->created_at->format('M d, Y') }}

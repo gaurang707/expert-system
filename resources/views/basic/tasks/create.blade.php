@@ -104,15 +104,15 @@
                 <div>
                     <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     @php                        
-                        $status = old('status', 'pending');
+                        $status = old('status', '');
                     @endphp
                     <select
                         name="status"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition">
                         
-                        <option value="pending" @if($status=='pending') selected @endif>Pending</option>
-                        <option value="inprogress"  @if($status=='inprogress') selected @endif>In Progress</option>
-                        <option value="completed"  @if($status=='completed') selected @endif>Completed</option>
+                        <option value="">---Select Status</option>
+                        <option value="active" @if($status=='active') selected @endif>Active</option>
+                        <option value="inactive"  @if($status=='inactive') selected @endif>In active</option>                       
 
                     </select>
 

@@ -46,6 +46,11 @@ class UpdateUserRequest extends FormRequest
                 'integer',
                 Rule::exists('roles', 'id'),
             ],
+            'status' => [
+                'required',
+                'string',
+                'in:active,inactive'
+            ]
         ];
     }
 

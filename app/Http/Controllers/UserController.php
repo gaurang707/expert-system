@@ -18,45 +18,30 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $filters = $request->validate([
-            'search' => ['nullable', 'string', 'max:100', 'min:3'],
-            'role_id' => ['nullable', 'integer', 'exists:roles,id'],
-            'per_page' => ['nullable', 'integer', 'in:10,25,50,100'],
-        ]);
+        'search' => ['nullable', 'string', 'min:3', 'max:100'],
+        'role_id' => ['nullable', 'integer', 'exists:roles,id'],
+        'status' => ['nullable', 'in:active,inactive'],
+        'date_from' => ['nullable', 'date_format:Y-m-d'],
+        'date_to' => [
+            'nullable',
+            'date_format:Y-m-d',
+            'after_or_equal:date_from',
+        ],
+        'per_page' => ['nullable', 'integer', 'in:10,25,50,100'],
+    ]); 
 
-        $search = trim($filters['search'] ?? '');
-        $roleId = $filters['role_id'] ?? null;
-        $perPage = (int) ($filters['per_page'] ?? 10);
-
-        $users = User::query()->with('role')
-
-            // Search by name or email
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%{$search}%")
-                        ->orWhere('email', 'LIKE', "%{$search}%");
-                });
-            })
-
-            // Filter by role
-            ->when($roleId, function ($query) use ($roleId) {
-                $query->where('role_id', $roleId);
-            })
-
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString();
+        $users = User::query()
+        ->with('role')
+        ->filter($filters)
+        ->latest()
+        ->paginate((int) ($filters['per_page'] ?? 10))
+        ->withQueryString();
 
         $roles = Role::select('id', 'display_name')
             ->orderBy('display_name', 'asc')
             ->get();
 
-        return view('basic.users.index', compact(
-            'users',
-            'roles',
-            'search',
-            'roleId',
-            'perPage'
-        ));
+        return view('basic.users.index', compact('users', 'roles', 'filters'));
     }
 
     /**

@@ -45,7 +45,12 @@ class StoreUserRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('roles', 'id'),
-            ],
+            ],  
+            'status' => [
+                'required',
+                'string',
+                'in:active,inactive'
+            ]
         ];
     }
 
