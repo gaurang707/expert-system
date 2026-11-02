@@ -29,7 +29,7 @@
             <li class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="space-y-1">
                     <p class="text-base font-semibold text-gray-900">{{ $task->id }}</p>
-                    
+
                 </div>
                 <div class="space-y-1">
                     <h3 class="text-base font-semibold text-gray-900">{{ $task->name }}</h3>

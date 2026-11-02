@@ -5,6 +5,7 @@ use App\Http\Controllers\LaravelBasicController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -44,6 +45,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/task-quick-add', [TaskController::class, 'todoQuickStore'])->name('task.quick-add-store');
 
     Route::resource('tasks', TaskController::class);    
+
+    Route::resource('users', UserController::class);    
+
+    //Route::get('users/updateeditmodal/{user}', [UserController::class, 'updateeditmodal'])->name('users.updateeditmodal');   
+    Route::put('users/updatemodal/{user}', [UserController::class, 'updatemodal'])->name('users.updatemodal');    
 });
 
 require __DIR__ . '/settings.php';

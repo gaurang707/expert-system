@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cities', function (Blueprint $table) {
+            $table->engine('InnoDB');
             $table->id();
             $table->foreignId('country_id')->constrained('country', 'id');
             $table->string('name');          
