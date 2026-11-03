@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\JobRunnerController;
 use App\Http\Controllers\LaravelBasicController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
@@ -61,6 +63,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         JobRunnerController::class,
         'store',
     ])->name('job-runner.store');
+
+    Route::get('profile/avatar', [ProfileAvatarController::class, 'edit'])->name('profile.avatar.edit');
+    Route::post('profile/avatar', [ProfileAvatarController::class, 'update'])->name('profile.avatar.update');
+
+    Route::get('/documents', [
+        DocumentController::class, 'index',
+    ])->name('documents.index');
+
+    Route::post('/documents', [
+        DocumentController::class, 'store',
+    ])->name('documents.store');
+
+    Route::get('/documents/{document}/download', [
+        DocumentController::class, 'download',
+    ])->name('documents.download');
+
 });
 
 require __DIR__ . '/settings.php';
