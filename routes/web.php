@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\JobRunnerController;
 use App\Http\Controllers\LaravelBasicController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegisterController;
@@ -39,17 +40,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::get('/product-catalog', [ProductController::class, 'index'])->name('product-catalog');
-    
-    Route::get('/task-list', [TaskController::class, 'index_quick'])->name('task-list');   
-    Route::get('/task-quick-add', [TaskController::class, 'todoQuickAdd'])->name('task-quick-add');    
+
+    Route::get('/task-list', [TaskController::class, 'index_quick'])->name('task-list');
+    Route::get('/task-quick-add', [TaskController::class, 'todoQuickAdd'])->name('task-quick-add');
     Route::post('/task-quick-add', [TaskController::class, 'todoQuickStore'])->name('task.quick-add-store');
 
-    Route::resource('tasks', TaskController::class);    
+    Route::resource('tasks', TaskController::class);
 
-    Route::resource('users', UserController::class);    
+    Route::resource('users', UserController::class);
 
     //Route::get('users/updateeditmodal/{user}', [UserController::class, 'updateeditmodal'])->name('users.updateeditmodal');   
-    Route::put('users/updatemodal/{user}', [UserController::class, 'updatemodal'])->name('users.updatemodal');    
+    Route::put('users/updatemodal/{user}', [UserController::class, 'updatemodal'])->name('users.updatemodal');
+
+    Route::get('/job-runner', [
+        JobRunnerController::class,
+        'index',
+    ])->name('job-runner.index');
+
+    Route::post('/job-runner', [
+        JobRunnerController::class,
+        'store',
+    ])->name('job-runner.store');
 });
 
 require __DIR__ . '/settings.php';
