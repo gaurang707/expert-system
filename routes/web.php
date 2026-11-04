@@ -68,17 +68,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('profile/avatar', [ProfileAvatarController::class, 'update'])->name('profile.avatar.update');
 
     Route::get('/documents', [
-        DocumentController::class, 'index',
+        DocumentController::class,
+        'index',
     ])->name('documents.index');
 
     Route::post('/documents', [
-        DocumentController::class, 'store',
+        DocumentController::class,
+        'store',
     ])->name('documents.store');
 
     Route::get('/documents/{document}/download', [
-        DocumentController::class, 'download',
+        DocumentController::class,
+        'download',
     ])->name('documents.download');
 
+      Route::get('/tasksmove', [
+        TaskController::class, 'indexmove'
+    ])->name('tasksmove.index');
+    
+    Route::patch(
+        '/tasks/{task}/move/{direction}',
+        [TaskController::class, 'move']
+    )->whereIn('direction', ['up', 'down'])
+        ->name('tasks.move');
 });
 
 require __DIR__ . '/settings.php';
