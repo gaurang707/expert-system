@@ -7,6 +7,7 @@ use App\Http\Controllers\LaravelBasicController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -82,15 +83,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'download',
     ])->name('documents.download');
 
-      Route::get('/tasksmove', [
-        TaskController::class, 'indexmove'
+    Route::get('/tasksmove', [
+        TaskController::class,
+        'indexmove'
     ])->name('tasksmove.index');
-    
+
     Route::patch(
         '/tasks/{task}/move/{direction}',
         [TaskController::class, 'move']
     )->whereIn('direction', ['up', 'down'])
         ->name('tasks.move');
+
+    Route::get('/profile-settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::patch('/profileupdate', [SettingsController::class, 'profile'])->name('settings.profile');
+    Route::patch('/secuirtyupdate', [SettingsController::class, 'security'])->name('settings.security');
+    Route::patch('/preferencesupdate', [SettingsController::class, 'preferences'])->name('settings.preferences');
 });
+
+
 
 require __DIR__ . '/settings.php';
