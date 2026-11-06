@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('action_jobs', function (Blueprint $table) {
+            $table->engine('InnoDB');
             $table->id();
             $table->string('job_hash', 20)->unique();
 
