@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('jobs', function (Blueprint $table) {
+            $table->engine('InnoDB');
             $table->id();
             $table->string('queue')->index();
             $table->longText('payload');
@@ -35,6 +36,7 @@ return new class extends Migration
         });
 
         Schema::create('failed_jobs', function (Blueprint $table) {
+            $table->engine('InnoDB');
             $table->id();
             $table->string('uuid')->unique();
             $table->string('connection');
