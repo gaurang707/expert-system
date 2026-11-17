@@ -9,38 +9,37 @@
     </header>
     <div class="content">
 
-    {{-- Success, Error, Warning and Info Messages --}}
-@foreach (['success', 'error', 'warning', 'info', 'status'] as $type)
+        {{-- Success, Error, Warning and Info Messages --}}
+        @foreach (['success', 'error', 'warning', 'info', 'status'] as $type)
 
-    @if (session()->has($type))
+        @if (session()->has($type))
 
         <div
             class="flash-alert flash-{{ $type === 'status' ? 'success' : $type }}"
-            role="{{ in_array($type, ['error', 'warning']) ? 'alert' : 'status' }}"
-        >
+            role="{{ in_array($type, ['error', 'warning']) ? 'alert' : 'status' }}">
             {{ session($type) }}
         </div>
 
-    @endif
+        @endif
 
-@endforeach
+        @endforeach
 
-{{-- Laravel Validation Errors --}}
-@if ($errors->any())
+        {{-- Laravel Validation Errors --}}
+        @if ($errors->any())
 
-    <div class="flash-alert flash-error" role="alert">
+        <div class="flash-alert flash-error" role="alert">
 
-        <strong>Please correct the following errors:</strong>
+            <strong>Please correct the following errors:</strong>
 
-        <ul>
-            @foreach ($errors->all() as $error)
+            <ul>
+                @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
-            @endforeach
-        </ul>
+                @endforeach
+            </ul>
 
-    </div>
+        </div>
 
-@endif
+        @endif
 
         <div class="eyebrow">✦ ACCESS MANAGEMENT</div>
         <h1>Roles &amp; Permissions</h1>

@@ -16,14 +16,19 @@ class UserRoleSeeder extends Seeder
     public function run(): void
     {
         $users = User::select('id')->get();
-        $roles = Role::pluck('id')->where('id', '!=', 1)->all();
-        
-        foreach ($users as $user) {           
+        $roles = Role::select('id')
+            ->where('id', '!=', 1)
+            ->get()->toArray();
+
+        $roles_arr = Arr::pluck($roles, 'id');
+        $roles_arr  = array_values($roles_arr);
+
+        foreach ($users as $user) {
 
             if ($user->id == 1) {
                 $user->roles()->sync([1]);
             } else {
-                $randomTwo = Arr::random($roles, 2);
+                $randomTwo = Arr::random($roles_arr, 2);               
                 $user->roles()->sync($randomTwo);
             }
         }

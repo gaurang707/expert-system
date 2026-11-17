@@ -15,19 +15,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        
-
         User::factory()->create([
             'name' => 'GP',
             'email' => 'gargpind@gmail.com',
         ]);
 
-        User::factory(10)->create();
+        User::factory(2000)->create();
 
         $this->call([
             RoleSeeder::class,
             UserRoleSeeder::class,
-            ActionSeeder::class
+            //ActionSeeder::class
         ]);
     }
 }
