@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportUsersRequest;
 use App\Jobs\ProcessUserCsvImport;
+use App\Models\CsvImport;
 use App\Models\User;
 use App\Services\ImportCsvService;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class UserImportController extends Controller
     }
 
 
-    
+
 
     public function store(ImportUsersRequest $request)
     {
@@ -223,12 +224,25 @@ class UserImportController extends Controller
             ->store('csv-imports', 'local');
 
 
-            //ProcessUserCsvImport::dispatchSync($path);
-            ProcessUserCsvImport::dispatch($path)->onQueue('csv-imports');
+        $import = CsvImport::create([
+            //'id' => (string) Str::uuid(),
+            'user_id' => auth()->id(),
+            'file_name' => $request->file('csv_file')->getClientOriginalName(),
+            'status' => 'queued',
+        ]);
+        //ProcessUserCsvImport::dispatchSync($path);
+        ProcessUserCsvImport::dispatch($path, $import->id)->onQueue('csv-imports');
+
+        // return redirect()->route(
+        //     'admin.csv-imports.show',
+        //     $import->id
+        // );
 
         return redirect()
             ->back()
-            ->with('success', 'CSV import has been queued for processing.');
-
+            ->with([
+                'success' => 'CSV import has been queued for processing.',
+                'import_id' => $import->id,
+            ]);
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\UserController;
@@ -47,6 +48,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('admin/importcsvqueue', [UserImportController::class, 'indexqueue'])->name('importcsv.importqueue');
     Route::post('admin/importcsvqueue', [UserImportController::class, 'storequeue'])->name('importcsv.storequeue');
 
+
+    Route::get('/admin/csv-imports/{csvImport}', [
+        CsvImportController::class,
+        'show'
+    ])->name('admin.csv-imports.show');
+
+    Route::get('/admin/csv-imports/{csvImport}/status', [
+        CsvImportController::class,
+        'status'
+    ])->name('admin.csv-imports.status');
 });
 
 Route::view('/jobs', 'jobs');

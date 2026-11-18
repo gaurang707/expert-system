@@ -2,24 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use App\Models\CsvImport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
 
 class ImportCsvService
 {
-
-
-    /**
-     * Create a new class instance.
-     */
-    public function __construct() {}
-    public function importFromPath(string $filePath): void
+    public function importFromPath(string $filePath, int $importId): void
     {
         $startTime = microtime(true);
+        $csvimport = CsvImport::findOrFail($importId);
 
         $chunkSize = 100;
         $chunk = [];
@@ -28,31 +25,33 @@ class ImportCsvService
         $rowNumber = 1;
         $insertedCount = 0;
         $failedCount = 0;
+        $totalRows = 0;
+        $handle = null;
 
-        // Hash only once, not for every user.
-        $hashPassword = Hash::make('password');
-
-        $handle = fopen($filePath, 'r');
-
-        if ($handle === false) {
-            throw new \RuntimeException('Unable to open CSV file.');
-        }
-
-        Log::info('CSV Import Started', [
-            'file' => basename($filePath),
-            'chunk_size' => $chunkSize,
+        $csvimport->update([
+            'status' => 'processing',
+            'started_at' => now(),
+            'completed_at' => null,
+            'error_message' => null,
         ]);
 
         try {
-            $headers = fgetcsv($handle);
+            $hashPassword = Hash::make('password');
+            $handle = fopen($filePath, 'r');
+
+            if ($handle === false) {
+                throw new RuntimeException('Unable to open CSV file.');
+            }
+
+            $headers = fgetcsv($handle, escape: '\\');
 
             if ($headers === false) {
-                throw new \RuntimeException('CSV file is empty.');
+                throw new RuntimeException('CSV file is empty.');
             }
 
             $headers = array_map(
-                fn($header) => strtolower(
-                    trim(ltrim($header, "\xEF\xBB\xBF"))
+                fn ($header) => strtolower(
+                    trim(ltrim((string) $header, "\xEF\xBB\xBF"))
                 ),
                 $headers
             );
@@ -60,13 +59,71 @@ class ImportCsvService
             $requiredHeaders = ['name', 'email', 'status'];
 
             if (array_diff($requiredHeaders, $headers)) {
-                throw new \RuntimeException('Invalid CSV headers.');
+                throw new RuntimeException('Invalid CSV headers.');
             }
 
-            while (($row = fgetcsv($handle)) !== false) {
+            // Count data rows before processing.
+            while (fgetcsv($handle, escape: '\\') !== false) {
+                $totalRows++;
+            }
+
+            $csvimport->update([
+                'total_rows' => $totalRows,
+            ]);
+
+            // Return to the beginning and skip the header.
+            if (!rewind($handle)) {
+                throw new RuntimeException('Unable to rewind CSV file.');
+            }
+
+            fgetcsv($handle, escape: '\\');
+
+            Log::info('CSV Import Started', [
+                'file' => basename($filePath),
+                'chunk_size' => $chunkSize,
+                'total_rows' => $totalRows,
+            ]);
+
+            while (($row = fgetcsv($handle, escape: '\\')) !== false) {
+                $processedRows = $rowNumber - 1;
+
+                // Commit the previous batch before processing this row.
+                // Rejected rows also count toward the batch size.
+                if ($processedRows > 0 && $processedRows % $chunkSize === 0) {
+                    $insertedCount = DB::transaction(function () use (
+                        $chunk,
+                        $insertedCount,
+                        $failedCount,
+                        $processedRows,
+                        $csvimport
+                    ) {
+                        if (!empty($chunk)) {
+                            DB::table('users')->insert($chunk);
+
+                            $insertedCount += count($chunk);
+                        }
+
+                        $csvimport->update([
+                            'processed_rows' => $processedRows,
+                            'success_rows' => $insertedCount,
+                            'failed_rows' => $failedCount,
+                        ]);
+
+                        return $insertedCount;
+                    });
+
+                    Log::info('CSV Import Progress', [
+                        'processed_rows' => $processedRows,
+                        'inserted' => $insertedCount,
+                        'failed' => $failedCount,
+                    ]);
+
+                    $chunk = [];
+                    $chunkEmails = [];
+                }
+
                 $rowNumber++;
 
-                // Validate column count.
                 if (count($row) !== count($headers)) {
                     $failedCount++;
 
@@ -79,14 +136,13 @@ class ImportCsvService
 
                 $data = array_combine($headers, $row);
 
-               // Testing only: generate unique email values.
-               // Remove this block for real customer imports.
-                if (app()->environment('local')) {
-                    $data['email'] = 'test_'
-                        . Str::random(12)
-                        . '_'
-                        . $data['email'];
-                }
+                // Existing local testing behavior.
+                // if (app()->environment('local')) {
+                //     $data['email'] = 'test_'
+                //         . Str::random(12)
+                //         . '_'
+                //         . $data['email'];
+                // }
 
                 $validator = Validator::make($data, [
                     'name' => 'required|string|max:255',
@@ -105,7 +161,6 @@ class ImportCsvService
                     continue;
                 }
 
-                // Prevent duplicates within the current chunk.
                 $emailKey = strtolower($data['email']);
 
                 if (isset($chunkEmails[$emailKey])) {
@@ -128,37 +183,37 @@ class ImportCsvService
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
+            }
 
-                // Insert when chunk reaches 100 records.
-                if (count($chunk) >= $chunkSize) {
+            $processedRows = $rowNumber - 1;
+
+            // Save the final batch and completion status together.
+            $insertedCount = DB::transaction(function () use (
+                $chunk,
+                $insertedCount,
+                $failedCount,
+                $processedRows,
+                $csvimport
+            ) {
+                if (!empty($chunk)) {
                     DB::table('users')->insert($chunk);
 
                     $insertedCount += count($chunk);
-
-                    Log::info('CSV Chunk Inserted', [
-                        'inserted_count' => $insertedCount,
-                        'last_row_number' => $rowNumber,
-                        'elapsed_seconds' => round(
-                            microtime(true) - $startTime,
-                            2
-                        ),
-                    ]);
-
-                    // Clear chunk after successful insertion.
-                    $chunk = [];
-                    $chunkEmails = [];
                 }
-            }
 
-            // Insert remaining records (fewer than 100).
-            if (!empty($chunk)) {
-                DB::table('users')->insert($chunk);
+                $csvimport->update([
+                    'status' => 'completed',
+                    'processed_rows' => $processedRows,
+                    'success_rows' => $insertedCount,
+                    'failed_rows' => $failedCount,
+                    'completed_at' => now(),
+                ]);
 
-                $insertedCount += count($chunk);
-            }
+                return $insertedCount;
+            });
 
             Log::info('CSV Import Completed', [
-                'total_rows' => $rowNumber - 1,
+                'total_rows' => $totalRows,
                 'inserted' => $insertedCount,
                 'failed' => $failedCount,
                 'execution_seconds' => round(
@@ -170,8 +225,18 @@ class ImportCsvService
                     2
                 ),
             ]);
+        } catch (Throwable $exception) {
+            $csvimport->update([
+                'status' => 'failed',
+                'error_message' => $exception->getMessage(),
+                'completed_at' => now(),
+            ]);
+
+            throw $exception;
         } finally {
-            fclose($handle);
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
         }
     }
 }

@@ -37,6 +37,65 @@
         </div>
 
         @endif
+
+
+        @if (session('import_id'))
+
+        <div
+            id="csvImportProgress"
+            data-status-url="{{ route('admin.csv-imports.status', session('import_id')) }}"
+            class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">
+                    CSV Import Progress
+                </h3>
+
+                <span id="importStatus" class="text-blue-600">
+                    Queued
+                </span>
+            </div>
+
+            <div class="flex justify-between mb-2">
+                <span class="text-sm text-gray-600">
+                    Processing users...
+                </span>
+
+                <span id="progressPercent" class="font-semibold">
+                    0%
+                </span>
+            </div>
+
+            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div
+                    id="progressBar"
+                    class="bg-green-500 h-4 rounded-full transition-all duration-500"
+                    style="width: 0%"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mt-5 text-center">
+                <div>
+                    <p class="text-sm text-gray-500">Processed</p>
+                    <p id="processedCount" class="text-xl font-bold">0</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Successful</p>
+                    <p id="successCount" class="text-xl font-bold text-green-600">0</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Failed</p>
+                    <p id="failedCount" class="text-xl font-bold text-red-600">0</p>
+                </div>
+            </div>
+
+            <p id="progressMessage" class="mt-4 text-sm text-gray-500">
+                Waiting for queue worker...
+            </p>
+        </div>
+
+        @endif
+
         <!-- Page Header -->
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -482,5 +541,225 @@
         </div>
 
     </div>
+
+    @if (session('import_id'))
+
+    <script>
+        $(document).ready(function() {
+
+            // Global CSRF setup
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            const $progressContainer = $('#csvImportProgress');
+
+            // Stop if progress container is not available.
+            if (!$progressContainer.length) {
+                return;
+            }
+
+            const statusUrl = $progressContainer.attr('data-status-url');
+
+            const pollingInterval = 3000;
+
+            let pollingTimer = null;
+
+            /**
+             * Fetch CSV import progress from Laravel.
+             */
+            function fetchImportProgress() {
+
+                $.ajax({
+                    url: statusUrl,
+                    method: 'GET',
+                    dataType: 'json',
+                    cache: false,
+                    timeout: 15000,
+
+                    success: function(response) {
+
+                        console.log('CSV Import Progress:', response);
+
+                        const percentage = Math.max(
+                            0,
+                            Math.min(100, Number(response.percentage) || 0)
+                        );
+
+                        const status = response.status;
+
+                        // -----------------------------------
+                        // 1. Update progress bar
+                        // -----------------------------------
+
+                        $('#progressBar')
+                            .css('width', percentage + '%')
+                            .attr('aria-valuenow', percentage);
+
+                        $('#progressPercent').text(
+                            percentage.toFixed(0) + '%'
+                        );
+
+                        // -----------------------------------
+                        // 2. Update statistics
+                        // -----------------------------------
+
+                        $('#processedCount').text(
+                            Number(response.processed_rows || 0).toLocaleString()
+                        );
+
+                        $('#totalCount').text(
+                            Number(response.total_rows || 0).toLocaleString()
+                        );
+
+                        $('#successCount').text(
+                            Number(response.success_rows || 0).toLocaleString()
+                        );
+
+                        $('#failedCount').text(
+                            Number(response.failed_rows || 0).toLocaleString()
+                        );
+
+                        $('#remainingCount').text(
+                            Number(response.remaining_rows || 0).toLocaleString()
+                        );
+
+                        // -----------------------------------
+                        // 3. Handle queued status
+                        // -----------------------------------
+
+                        if (status === 'queued') {
+
+                            $('#importStatus')
+                                .text('Queued')
+                                .removeClass()
+                                .addClass('text-blue-600 font-semibold');
+
+                            $('#progressMessage').text(
+                                'CSV import is waiting for the queue worker...'
+                            );
+                        }
+
+                        // -----------------------------------
+                        // 4. Handle processing status
+                        // -----------------------------------
+
+                        if (status === 'processing') {
+
+                            $('#importStatus')
+                                .text('Processing')
+                                .removeClass()
+                                .addClass('text-yellow-600 font-semibold');
+
+                            $('#progressMessage').text(
+                                'Import is running. Please wait...'
+                            );
+                        }
+
+                        // -----------------------------------
+                        // 5. Handle completed status
+                        // -----------------------------------
+
+                        if (status === 'completed') {
+
+                            $('#importStatus')
+                                .text('Completed')
+                                .removeClass()
+                                .addClass('text-green-600 font-semibold');
+
+                            $('#progressMessage')
+                                .text('CSV import completed successfully!')
+                                .removeClass('text-red-600')
+                                .addClass('text-green-600');
+
+                            $('#progressBar')
+                                .removeClass('bg-red-500')
+                                .addClass('bg-green-500');
+
+                            // Stop polling when completed.
+                            return;
+                        }
+
+                        // -----------------------------------
+                        // 6. Handle failed status
+                        // -----------------------------------
+
+                        if (status === 'failed') {
+
+                            $('#importStatus')
+                                .text('Failed')
+                                .removeClass()
+                                .addClass('text-red-600 font-semibold');
+
+                            $('#progressMessage')
+                                .text(
+                                    response.error_message ||
+                                    'CSV import failed.'
+                                )
+                                .removeClass('text-green-600')
+                                .addClass('text-red-600');
+
+                            $('#progressBar')
+                                .removeClass('bg-green-500')
+                                .addClass('bg-red-500');
+
+                            // Stop polling when failed.
+                            return;
+                        }
+
+                        // -----------------------------------
+                        // 7. Continue polling
+                        // -----------------------------------
+
+                        pollingTimer = setTimeout(
+                            fetchImportProgress,
+                            pollingInterval
+                        );
+                    },
+
+                    error: function(xhr) {
+
+                        console.error(
+                            'CSV Import API Error:',
+                            xhr.status,
+                            xhr.responseText
+                        );
+
+                        if ([401, 403, 404].includes(xhr.status)) {
+
+                            $('#progressMessage')
+                                .text('Unable to access import progress.')
+                                .addClass('text-red-600');
+
+                            return;
+                        }
+
+                        $('#progressMessage')
+                            .text('Unable to retrieve progress. Retrying...');
+
+                        pollingTimer = setTimeout(
+                            fetchImportProgress,
+                            5000
+                        );
+                    }
+                });
+            }
+
+            // First API request immediately.
+            fetchImportProgress();
+
+            // Stop the timer when navigating away.
+            $(window).on('beforeunload', function() {
+                if (pollingTimer !== null) {
+                    clearTimeout(pollingTimer);
+                }
+            });
+
+        });
+    </script>
+
+    @endif
 
 </x-layouts::app>

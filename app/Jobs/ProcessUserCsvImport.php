@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\CsvImport;
 use App\Services\ImportCsvService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -18,7 +19,7 @@ class ProcessUserCsvImport implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public string $filePath)
+    public function __construct(public string $filePath, public int $importId)
     {
         //
     }
@@ -28,14 +29,13 @@ class ProcessUserCsvImport implements ShouldQueue
      */
     public function handle(ImportCsvService $importService): void
     {
-         $fullPath = Storage::disk('local')
+        $fullPath = Storage::disk('local')
             ->path($this->filePath);
 
-         // Method to implement using your existing import logic.        
+        // Method to implement using your existing import logic. 
+        $importService->importFromPath($fullPath, $this->importId);
 
-        $importService->importFromPath($fullPath);
-
-         // Delete only after successful processing.
+        // Delete only after successful processing.
         Storage::disk('local')->delete($this->filePath);
     }
 }
