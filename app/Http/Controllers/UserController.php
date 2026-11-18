@@ -67,6 +67,6 @@ class UserController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', $message);
+            ->with('success', $message);            
     }
 }
