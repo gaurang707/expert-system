@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportUsersRequest;
+use App\Jobs\ProcessUserCsvImport;
 use App\Models\User;
 use App\Services\ImportCsvService;
 use Illuminate\Http\Request;
@@ -23,10 +24,33 @@ class UserImportController extends Controller
         return view('inter.admin.import');
     }
 
+    public function indexqueue()
+    {
+        return view('inter.admin.importqueue');
+    }
+
+
+    
+
     public function store(ImportUsersRequest $request)
     {
+        $validated = $request->validated();
+
+        // Store uploaded file in private storage.
+        $path = $validated['csv_file']
+            ->store('csv-imports', 'local');
+
+        ProcessUserCsvImport::dispatch($path)->onQueue('csv-imports');
+
+        return redirect()
+            ->back()
+            ->with('success', 'CSV import has been queued for processing.');
+
+
+
         $hashPassword = Hash::make('password');
         $file = $request->file('csv_file');
+
 
         $handle = fopen($file->getRealPath(), 'r');
 
@@ -188,5 +212,23 @@ class UserImportController extends Controller
             'success',
             count($rows) . ' users imported successfully.'
         );
+    }
+
+    public function storequeue(ImportUsersRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Store uploaded file in private storage.
+        $path = $validated['csv_file']
+            ->store('csv-imports', 'local');
+
+
+            //ProcessUserCsvImport::dispatchSync($path);
+            ProcessUserCsvImport::dispatch($path)->onQueue('csv-imports');
+
+        return redirect()
+            ->back()
+            ->with('success', 'CSV import has been queued for processing.');
+
     }
 }

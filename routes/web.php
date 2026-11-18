@@ -42,7 +42,10 @@ Route::middleware(['auth'])->group(function () {
     ])->name('admin.notifications.destroy');
 
     Route::get('admin/importcsv', [UserImportController::class, 'index'])->name('importcsv.index');
-     Route::post('admin/importcsv', [UserImportController::class, 'store'])->name('importcsv.store');
+    Route::post('admin/importcsv', [UserImportController::class, 'store'])->name('importcsv.store');
+
+    Route::get('admin/importcsvqueue', [UserImportController::class, 'indexqueue'])->name('importcsv.importqueue');
+    Route::post('admin/importcsvqueue', [UserImportController::class, 'storequeue'])->name('importcsv.storequeue');
 
 });
 
